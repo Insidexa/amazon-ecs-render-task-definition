@@ -62,6 +62,8 @@ async function run() {
     let taskDefContents;
     let describeTaskDefResponse;
     let params;
+
+	  core.info({ taskDefinitionFile, taskDefinitionArn, taskDefinitionFamily, taskDefinitionRevision })
     
     if (taskDefinitionFile) {
       core.info("Task definition file will be used.");
@@ -103,6 +105,8 @@ async function run() {
       throw new Error("Either task definition, task definition arn or task definition family must be provided");
     }
 
+	   core.info({ taskDefContents })
+
     // Insert the image URI
     if (!Array.isArray(taskDefContents.containerDefinitions)) {
       throw new Error('Invalid task definition format: containerDefinitions section is not present or is not an array');
@@ -113,11 +117,14 @@ async function run() {
     if (!containerDef) {
       throw new Error('Invalid task definition: Could not find container definition with matching name');
     }
+	  core.info({ imageURI })
     containerDef.image = imageURI;
 
     if (command) {
       containerDef.command = command.split(' ')
     }
+
+	  core.info({ cntCommand: containerDef.command })
 
     if (envFiles) {
       containerDef.environmentFiles = [];
@@ -168,6 +175,7 @@ async function run() {
           containerDef.environment.push(variable);
         }
       })
+	    core.info({ secrets })
 
       if (secrets) {
         // If secrets array is missing, create it
@@ -175,8 +183,11 @@ async function run() {
           containerDef.secrets = [];
         }
 
+	      core.info({ secretsSplit: secrets.split('\n') })
+
         // Get pairs by splitting on newlines
         secrets.split('\n').forEach(function (line) {
+		core.info({ secretLine: line })
           // Trim whitespace
           const trimmedLine = line.trim();
           // Skip if empty
